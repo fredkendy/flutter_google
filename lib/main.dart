@@ -80,7 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
         break;
       case 1:
         // um widget útil que desenha um retângulo cruzado onde quer que você o coloque, marcando essa parte da interface como incompleta.
-        page = Placeholder();
+        page = FavoritesPage();
         break;
       default:
         throw UnimplementedError('no widget for $selectedIndex');
@@ -208,6 +208,38 @@ class BigCard extends StatelessWidget {
           semanticsLabel: "${pair.first} ${pair.second}",
         ),
       ),
+    );
+  }
+}
+
+//Widget detecta o estado atual do app
+//Se a lista de favoritos estiver vazia, a mensagem centralizada: No favorites yet (nenhum favorito) vai aparecer. Caso contrário, aparecerá uma lista (rolável).
+//A lista começa com um resumo. Por exemplo, You have 5 favorites (você tem 5 favoritos).
+//O código é iterado em todos os favoritos e cria um widget ListTile para cada um.
+class FavoritesPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+
+    if (appState.favorites.isEmpty) {
+      return Center(
+        child: Text('No favorites yet.'),
+      );
+    }
+
+    return ListView(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Text('You have '
+              '${appState.favorites.length} favorites:'),
+        ),
+        for (var pair in appState.favorites)
+          ListTile(
+            leading: Icon(Icons.favorite),
+            title: Text(pair.asLowerCase),
+          ),
+      ],
     );
   }
 }
