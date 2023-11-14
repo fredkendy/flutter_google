@@ -41,6 +41,19 @@ class MyAppState extends ChangeNotifier {
     current = WordPair.random();
     notifyListeners();
   }
+
+  //Adicionando a lógica de favoritar
+  var favorites = <WordPair>[]; //inicializada como lista vazia, que só pode conter pares de palavras (generics)
+
+  //remove o par de palavras atual da lista de favoritos (se já estiver lá) ou o adiciona (se ainda não estiver). Em ambos os casos, o código chama notifyListeners(); depois.
+  void toggleFavorite() {
+    if (favorites.contains(current)) {
+      favorites.remove(current);
+    } else {
+      favorites.add(current);
+    }
+    notifyListeners();
+  }
 }
 
 class MyHomePage extends StatelessWidget {
@@ -50,6 +63,14 @@ class MyHomePage extends StatelessWidget {
         MyAppState>(); //O widget MyHomePage rastreia mudanças no estado atual do app usando o método watch.
     var pair = appState.current;
 
+    //Lógica que "pinta" o coração caso seja selecionado
+    IconData icon;
+    if (appState.favorites.contains(pair)) {
+      icon = Icons.favorite;
+    } else {
+      icon = Icons.favorite_border;
+    }
+
     return Scaffold(
       body: Center(
         //Na column, demos um 'wrap with center'
@@ -57,16 +78,31 @@ class MyHomePage extends StatelessWidget {
           //Isso centraliza os filhos dentro da Column ao longo do eixo principal (vertical)
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-          Text('A random AWESOME idea:'),
+          Text('A Random AWESOME Idea!!!'),
           //Era um Text, extraimos o widget e demos este nome, criando outra classe
           BigCard(pair: pair),
           //apenas ocupa espaço e não renderiza nada sozinho.
           SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () {
-              appState.getNext();
-            },
-            child: Text('Next'),
+          Row(
+            mainAxisSize: MainAxisSize.min, //Isso informa a Row para não ocupar todo o espaço horizontal disponível.
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  appState.toggleFavorite();
+                },
+                icon: Icon(icon),
+                label: Text('Like'),
+              ),
+              //Espaçamento
+              SizedBox(width: 10),
+              //Demos um 'wrap with row' no elevatedbutton
+              ElevatedButton(
+                onPressed: () {
+                  appState.getNext();
+                },
+                child: Text('Next'),
+              ),
+            ],
           ),
         ]),
       ),
