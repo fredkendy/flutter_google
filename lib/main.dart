@@ -43,7 +43,8 @@ class MyAppState extends ChangeNotifier {
   }
 
   //Adicionando a lógica de favoritar
-  var favorites = <WordPair>[]; //inicializada como lista vazia, que só pode conter pares de palavras (generics)
+  var favorites =
+      <WordPair>[]; //inicializada como lista vazia, que só pode conter pares de palavras (generics)
 
   //remove o par de palavras atual da lista de favoritos (se já estiver lá) ou o adiciona (se ainda não estiver). Em ambos os casos, o código chama notifyListeners(); depois.
   void toggleFavorite() {
@@ -56,14 +57,88 @@ class MyAppState extends ChangeNotifier {
   }
 }
 
-class MyHomePage extends StatelessWidget {
+//Convertemos MyHomePage para um widget com estado
+class MyHomePage extends StatefulWidget {
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+//Essa classe estende State e, portanto, pode gerenciar os próprios valores. Ela pode mudar a si mesma.
+class _MyHomePageState extends State<MyHomePage> {
+
+  var selectedIndex = 0;
+
   @override
   Widget build(BuildContext context) {
-    var appState = context.watch<
-        MyAppState>(); //O widget MyHomePage rastreia mudanças no estado atual do app usando o método watch.
+
+    //O código declara uma nova variável, page, do tipo Widget.
+    Widget page;
+    //Em seguida, uma instrução switch atribui uma tela a page, de acordo com o valor atual em selectedIndex.
+    switch (selectedIndex) {
+      case 0:
+        page = GeneratorPage();
+        break;
+      case 1:
+        // um widget útil que desenha um retângulo cruzado onde quer que você o coloque, marcando essa parte da interface como incompleta.
+        page = Placeholder();
+        break;
+      default:
+        throw UnimplementedError('no widget for $selectedIndex');
+    }
+
+    //O callback builder de LayoutBuilder é chamado sempre que as restrições mudam. Isso acontece nestes casos, por exemplo: O usuário redimensiona a janela do app.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        //Demos um wrap with builder, em seguida renomeamos para LayoutBuilder e add constraints no builder
+        return Scaffold(
+          body: Row(
+            children: [
+              //A SafeArea garante que os filhos não sejam ocultos por um entalhe de hardware ou uma barra de status. Neste app, o widget une a NavigationRail para evitar que os botões de navegação sejam ocultos por uma barra de status móvel, por exemplo.
+              SafeArea(
+                child: NavigationRail(
+                  extended: false,
+                  destinations: [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.home),
+                      label: Text('Home'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.favorite),
+                      label: Text('Favorites'),
+                    ),
+                  ],
+                  selectedIndex: selectedIndex,
+                  //Quando o callback onDestinationSelected é chamado, em vez de simplesmente mostrar o novo valor no console, você o atribui ao selectedIndex dentro de uma chamada setState(). Essa chamada é semelhante ao método notifyListeners() usado antes. Ela garante a atualização da interface.
+                  onDestinationSelected: (value) {
+                    setState(() {
+                      selectedIndex = value;
+                    });
+                  },
+                ),
+              ),
+              //Os widgets expandidos são extremamente úteis em linhas e colunas. Eles permitem expressar layouts em que alguns filhos ocupam apenas o espaço necessário (NavigationRail, nesse caso) e outros widgets precisam ocupar o máximo possível do espaço restante (Expanded, nesse caso).
+              Expanded(
+                //Dentro do widget Expanded, há um Container colorido e dentro do contêiner, a GeneratorPage.
+                child: Container(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: page,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    );
+  }
+}
+
+//todo o conteúdo de MyHomePage é extraído para um novo widget, GeneratorPage. A única parte do antigo widget MyHomePage que não foi extraída é o Scaffold.
+class GeneratorPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
     var pair = appState.current;
 
-    //Lógica que "pinta" o coração caso seja selecionado
     IconData icon;
     if (appState.favorites.contains(pair)) {
       icon = Icons.favorite;
@@ -71,20 +146,14 @@ class MyHomePage extends StatelessWidget {
       icon = Icons.favorite_border;
     }
 
-    return Scaffold(
-      body: Center(
-        //Na column, demos um 'wrap with center'
-        child: Column(
-          //Isso centraliza os filhos dentro da Column ao longo do eixo principal (vertical)
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-          Text('A Random AWESOME Idea!!!'),
-          //Era um Text, extraimos o widget e demos este nome, criando outra classe
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
           BigCard(pair: pair),
-          //apenas ocupa espaço e não renderiza nada sozinho.
           SizedBox(height: 10),
           Row(
-            mainAxisSize: MainAxisSize.min, //Isso informa a Row para não ocupar todo o espaço horizontal disponível.
+            mainAxisSize: MainAxisSize.min,
             children: [
               ElevatedButton.icon(
                 onPressed: () {
@@ -93,9 +162,7 @@ class MyHomePage extends StatelessWidget {
                 icon: Icon(icon),
                 label: Text('Like'),
               ),
-              //Espaçamento
               SizedBox(width: 10),
-              //Demos um 'wrap with row' no elevatedbutton
               ElevatedButton(
                 onPressed: () {
                   appState.getNext();
@@ -104,7 +171,7 @@ class MyHomePage extends StatelessWidget {
               ),
             ],
           ),
-        ]),
+        ],
       ),
     );
   }
@@ -135,8 +202,11 @@ class BigCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         //Neste Text, demos um Wrap with Padding
-        child: Text(pair.asLowerCase,
-            style: style, semanticsLabel: "${pair.first} ${pair.second}",),
+        child: Text(
+          pair.asLowerCase,
+          style: style,
+          semanticsLabel: "${pair.first} ${pair.second}",
+        ),
       ),
     );
   }
