@@ -1,0 +1,12 @@
+#Esse arquivo determina o quanto o Flutter será rigoroso ao analisar seu código. Como este é seu primeiro trabalho no Flutter, você está dizendo ao analisador para pegar leve. É possível ajustar isso mais tarde. Na verdade, conforme você se aproxima da publicação de um app de produção real, é quase certeza que vai querer usar o analisador mais rigoroso do que isso.
+
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    prefer_const_constructors: false
+    prefer_final_fields: false
+    use_key_in_widget_constructors: false
+    prefer_const_literals_to_create_immutables: false
+    prefer_const_constructors_in_immutables: false
+    avoid_print: false
